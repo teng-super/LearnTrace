@@ -15,6 +15,7 @@ data/exports/
 .tools/
 
 # Logs
+logs/
 *.log
 frontend/*.log
 
