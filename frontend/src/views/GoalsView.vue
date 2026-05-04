@@ -1,5 +1,36 @@
 <template>
   <div class="grid">
+    <section class="panel view-hero glass-panel">
+      <div class="view-hero-main">
+        <span class="status-pill primary">Goal Templates + Custom Plan</span>
+        <h2>把八周计划、赛道模板和个人目标放到同一个系统里调度</h2>
+        <p>目标不再只是一个标题。它可以有阶段、任务、截止时间、关联错误、复盘和笔记，后续每次 vibe coding 都能围绕它继续演进。</p>
+      </div>
+      <div class="hero-actions">
+        <el-button :icon="Files" @click="openTemplate">从模板生成</el-button>
+        <el-button :icon="Plus" type="primary" @click="openCreate">新建目标</el-button>
+      </div>
+    </section>
+
+    <div class="grid grid-4">
+      <MetricCard label="目标总数" :value="goals.length" note="当前账号下的目标" :icon="Aim" tone="primary" />
+      <MetricCard label="进行中" :value="statusCount('IN_PROGRESS')" note="正在推进" :icon="TrendCharts" tone="blue" />
+      <MetricCard label="已完成" :value="statusCount('COMPLETED')" note="形成闭环" :icon="CircleCheck" tone="green" />
+      <MetricCard label="高优先级" :value="goals.filter(g => g.priority === 'HIGH').length" note="需要优先保护时间" :icon="Flag" tone="warning" />
+    </div>
+
+    <section class="goal-strip" v-if="goals.length">
+      <article v-for="goal in goals.slice(0, 3)" :key="goal.id" class="panel panel-pad goal-card" @click="router.push(`/goals/${goal.id}`)">
+        <div class="row-head">
+          <span class="status-pill primary">{{ goal.category || '未分类' }}</span>
+          <span class="status-pill" :class="statusTone(goal.status)">{{ statusLabel(goal.status) }}</span>
+        </div>
+        <h3>{{ goal.title }}</h3>
+        <p class="muted">{{ goal.description }}</p>
+        <el-progress :percentage="goal.progress || 0" :stroke-width="10" />
+      </article>
+    </section>
+
     <section class="panel panel-pad">
       <div class="toolbar">
         <div class="toolbar-left">
@@ -12,15 +43,24 @@
           </el-select>
         </div>
         <div class="toolbar-right">
-          <el-button @click="openTemplate">从模板生成</el-button>
-          <el-button type="primary" @click="openCreate">新建目标</el-button>
+          <el-button :icon="Files" @click="openTemplate">从模板生成</el-button>
+          <el-button :icon="Plus" type="primary" @click="openCreate">新建目标</el-button>
         </div>
       </div>
       <el-table :data="goals" style="width: 100%">
-        <el-table-column prop="title" label="目标" min-width="240" />
+        <el-table-column label="目标" min-width="280">
+          <template #default="{ row }">
+            <strong>{{ row.title }}</strong>
+            <div class="muted">{{ row.description }}</div>
+          </template>
+        </el-table-column>
         <el-table-column prop="category" label="分类" width="150" />
-        <el-table-column prop="priority" label="优先级" width="100" />
-        <el-table-column prop="status" label="状态" width="120" />
+        <el-table-column label="优先级" width="110">
+          <template #default="{ row }"><span class="status-pill" :class="{ primary: row.priority === 'HIGH' }">{{ row.priority }}</span></template>
+        </el-table-column>
+        <el-table-column label="状态" width="130">
+          <template #default="{ row }"><span class="status-pill" :class="statusTone(row.status)">{{ statusLabel(row.status) }}</span></template>
+        </el-table-column>
         <el-table-column label="进度" width="180">
           <template #default="{ row }"><el-progress :percentage="row.progress || 0" /></template>
         </el-table-column>
@@ -88,6 +128,8 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Aim, CircleCheck, Files, Flag, Plus, TrendCharts } from '@element-plus/icons-vue'
+import MetricCard from '@/components/MetricCard.vue'
 import { api } from '@/api/client'
 
 const router = useRouter()
@@ -103,6 +145,20 @@ const load = async () => {
   const res = await api.get('/goals', { params: { keyword: keyword.value, status: status.value, size: 100 } })
   goals.value = res.records
 }
+
+const statusCount = (value: string) => goals.value.filter(goal => goal.status === value).length
+const statusLabel = (value: string) => ({
+  NOT_STARTED: '未开始',
+  IN_PROGRESS: '进行中',
+  COMPLETED: '已完成',
+  PAUSED: '已暂停'
+}[value] || value)
+const statusTone = (value: string) => ({
+  IN_PROGRESS: 'primary',
+  COMPLETED: 'good',
+  PAUSED: '',
+  NOT_STARTED: ''
+}[value] || '')
 
 const openCreate = () => {
   Object.assign(form, { id: null, title: '', description: '', category: '', priority: 'HIGH', status: 'NOT_STARTED', startDate: '', deadline: '', stages: [] })
@@ -145,6 +201,27 @@ onMounted(load)
 </script>
 
 <style scoped>
+.goal-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.goal-card {
+  cursor: pointer;
+  transition: transform .18s ease, border-color .18s ease;
+}
+.goal-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--primary), transparent 42%);
+}
+.goal-card h3 {
+  margin: 14px 0 8px;
+  line-height: 1.35;
+}
+.goal-card p {
+  min-height: 70px;
+  line-height: 1.6;
+}
 .stage-edit {
   display: grid;
   grid-template-columns: 1fr 1.3fr auto;
@@ -156,5 +233,8 @@ onMounted(load)
   gap: 10px;
   align-content: start;
   min-height: 260px;
+}
+@media (max-width: 1180px) {
+  .goal-strip { grid-template-columns: 1fr; }
 }
 </style>

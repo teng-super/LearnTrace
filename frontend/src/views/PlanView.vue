@@ -1,12 +1,12 @@
 <template>
   <div class="grid">
-    <section class="panel panel-pad plan-hero">
+    <section class="panel panel-pad glass-panel plan-hero">
       <div>
-        <span class="status-pill">study_plan.html 已迁移为数据库模板</span>
+        <span class="status-pill primary">study_plan.html 已迁移为数据库模板</span>
         <h2>八周系统进阶作战图</h2>
         <p class="muted">Linux、C++ 编译链、并发、网络、FFmpeg、学校三科，现在不再是本地勾选，而是可导入、可拆分、可统计的目标计划。</p>
       </div>
-      <el-button type="primary" size="large" @click="importPlan">一键导入默认八周计划</el-button>
+      <el-button :icon="Download" type="primary" size="large" @click="importPlan">一键导入默认八周计划</el-button>
     </section>
     <section class="panel panel-pad">
       <div class="week-tabs">
@@ -24,6 +24,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Download } from '@element-plus/icons-vue'
 import { api } from '@/api/client'
 
 const templates = ref<any[]>([])
@@ -59,6 +60,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
+  min-height: 210px;
 }
 .plan-hero h2 {
   margin: 12px 0 8px;

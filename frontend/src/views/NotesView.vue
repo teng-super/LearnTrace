@@ -1,10 +1,24 @@
 <template>
-  <div class="grid grid-2 notes-layout">
+  <div class="grid notes-page">
+    <section class="panel view-hero glass-panel">
+      <div class="view-hero-main">
+        <span class="status-pill primary">Knowledge Base</span>
+        <h2>把 PDF、Markdown、Word 都沉淀成可复盘的材料</h2>
+        <p>Markdown 可直接编辑保存，PDF 保留原文件并做批注摘录，Word 文件预留 ONLYOFFICE 原格式编辑入口。</p>
+      </div>
+      <div class="hero-actions">
+        <el-upload :auto-upload="true" :show-file-list="false" :http-request="importFile">
+          <el-button :icon="Upload" type="primary">导入笔记</el-button>
+        </el-upload>
+      </div>
+    </section>
+
+    <div class="grid grid-2 notes-layout">
     <section class="panel panel-pad">
       <div class="toolbar">
         <h2 style="margin: 0">笔记库</h2>
         <el-upload :auto-upload="true" :show-file-list="false" :http-request="importFile">
-          <el-button type="primary">导入 PDF / Markdown / Word</el-button>
+          <el-button :icon="Upload" type="primary">导入 PDF / Markdown / Word</el-button>
         </el-upload>
       </div>
       <el-input v-model="keyword" placeholder="搜索笔记" clearable @keyup.enter="load" style="margin-bottom: 14px" />
@@ -43,12 +57,14 @@
       </template>
       <el-empty v-else description="选择或导入一篇笔记" />
     </section>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Upload } from '@element-plus/icons-vue'
 import { MdEditor } from 'md-editor-v3'
 import { api, rawApi } from '@/api/client'
 
